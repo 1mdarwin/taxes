@@ -1,0 +1,9 @@
+services:
+  taxes_client:
+    class: Drupal\taxes\TaxesClient
+    arguments:
+      - '@http_client_factory'
+  impuestos_client:
+    class: Drupal\taxes\ImpuestosClient
+    arguments:
+      - '@http_client_factory'

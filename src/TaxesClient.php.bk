@@ -1,0 +1,44 @@
+<?php
+
+namespace Drupal\taxes;
+use Drupal\Component\Serialization\Json;
+// use GuzzleHttp\Client;
+
+Class TaxesClient {
+
+	/**
+   * @var \GuzzleHttp\Client
+   */
+  	protected $client;
+
+	/**
+	 * @param $http_client_factory \Drupal\Core\Http
+	 */	
+	public function __construct($http_client_factory ){
+		$this->client = $http_client_factory->fromOptions([
+			'base_uri' => 'https://cat-fact.herokuapp.com/',
+		]);
+	}
+
+
+	/**
+	 * Get some random cats
+	 * @param int $amount
+	 * @return array
+	 */	
+	public function random($amount = 1) {
+		// $response = $this->client->get('facts/random',[
+		// 	'query' => [
+		// 		'amount' => $amount
+		// 	]
+		// ]);
+		$response = $this->client->get('facts/random',[
+	      'query' => [
+	        'amount' => $amount
+	      ]
+	    ]);
+
+		return Json::decode($response->getBody());
+	}
+
+}

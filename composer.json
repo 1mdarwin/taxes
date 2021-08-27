@@ -1,0 +1,13 @@
+{
+    "name": "taxes",
+    "type": "drupal-module",
+    "description": "Consume data from GIM webservice REST",
+    "keywords": [
+    ],
+    "homepage": "https://www.drupal.org/project/taxes",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/taxes",
+        "source": "http://cgit.drupalcode.org/taxes",
+    },
+}

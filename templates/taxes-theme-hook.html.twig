@@ -1,0 +1,55 @@
+<!-- Let's output the three variables passed to this template -->
+
+Cedula: {{ var1.identificationNumber }} </br>
+Nombres: {{ var1.firstName }} </br>
+Rubro: {{ var1.email }} </br>
+Correo: {{ var1.email }} </br>
+<ul>
+
+  {% for key, item in var1 %}            
+       {% if key == 'taxpayer' %}        
+         {{ key }}
+         {% for valor, k1 in item %}
+          <li>
+            {# {{ valor }} #}
+            {{ k1 }}
+          </li>
+         {% endfor %}         
+      {% endif %}
+    
+  {% endfor %}
+</ul>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Indice</th>
+      <th>Service Code</th>
+      <th>Description</th>
+      <th>Service Date</th>
+      <th>Expiration Date</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% set sum = 0 %}
+    {% for items, k1 in var2 %}      
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ k1.serviceCode }}</td>
+      <td>{{ k1.account }}</td>
+      <td>{{ k1.serviceDate }}</td>
+      <td>{{ k1.expirationDate }}</td>
+      {% set sum = sum + k1.total|number_format(2) %}
+      <td class="total">{{ k1.total }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="3"><td>
+      <td>Total</td>
+      <td class="total">{{ sum|number_format(2) }}</td>
+    </tr>    
+  </tbody> 
+  
+</table>
+
+</br>

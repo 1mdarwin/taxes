@@ -1,0 +1,49 @@
+<?php
+/**
+ * Global parameters for web services connection
+ */
+
+require_once ('connection_ws.inc');
+
+/**
+ * @file
+ * Contains taxes.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function taxes_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the taxes module.
+    case 'help.page.taxes':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Consume data from GIM webservice REST') ;
+      $output .=  t(' and show them into table for commerce module') . '</p>';
+      $output .= '<ul><li>' . t('The URL build is /taxes/consulta') . '</li></ul>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function taxes_theme($existing, $type, $theme, $path) {
+  return [
+    'taxes_theme_hook' => [
+      'render element' => 'children',
+      // 'template' => 'taxes1-theme-hook',
+      'path' => $path . '/templates',
+      'variables' => [
+        'var1' => [],
+        'var2' => [],
+      ],
+    ],
+  ];
+
+}

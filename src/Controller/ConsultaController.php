@@ -15,15 +15,25 @@ class ConsultaController {
 		$profile = $response['taxpayer'];
 		$bonds = $response['bonds'];
 		/*dsm($response);
-		dsm($profile);	
+		dsm($profile);
 		dsm($bonds);*/
 		return [
 			'#theme' => 'taxes_theme_hook',
 			'#var1' => $profile,
 			'#var2' => $bonds,
 		];
-		// return array (
-		// 	'#markup' => $mensaje,
-		// );
-	}	
+	}
+  /**
+   * Show a message during query taxes is disabled
+   * @return array
+   *    message into markup section
+   */
+  public function show_message(){
+    $config = \Drupal::config('taxes.taxesconfig');
+		$message = $config->get('endofyear_message');
+
+		return array (
+			'#markup' => $message,
+		);
+	}
 }

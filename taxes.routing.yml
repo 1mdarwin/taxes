@@ -6,20 +6,40 @@ taxes.taxes_form:
   requirements:
     _access: 'TRUE'
 
+
 taxes.ts_resultado: # table select resultado
-  path: '/taxes/resultado1'
+  path: '/taxes/resultado'
   defaults:
     _form: '\Drupal\taxes\Form\TableResultForm'
-    _title: 'Resultado de la consulta1'
+    _title: 'Resultado de la consulta'
   requirements:
     _access: 'TRUE'
 
+
 taxes.resconsulta:
-  path: '/taxes/resultado'
+  path: '/taxes/resultado1'
   defaults:
     _controller: '\Drupal\taxes\Controller\ConsultaController::showres'
-    _title: 'Resultado de Consulta'
+    _title: 'Resultado de Consulta sin Tabla'
   requirements:
     _permission: 'access content'
- 
 
+
+taxes.maintenance:
+  path: '/taxes/consultam'
+  defaults:
+    _controller: '\Drupal\taxes\Controller\ConsultaController::show_message'
+    _title: 'Mantenimiento del servicio'
+  requirements:
+    _permission: 'access content'
+
+
+taxes.taxes_config_form:
+  path: '/admin/config/taxes/settings'
+  defaults:
+    _form: '\Drupal\taxes\Form\TaxesConfigForm'
+    _title: 'Configuración de consulta de impuestos'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE

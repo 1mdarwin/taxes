@@ -5,13 +5,15 @@ namespace Drupal\taxes\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 
 /**
  * Class TaxesForm.
  */
 class TaxesForm extends FormBase {
   /**
-   * @var \Drupal\taxes\ImpuestosClient 
+   * @var \Drupal\taxes\ImpuestosClient
    */
   protected $impuestosClient;
 
@@ -43,6 +45,12 @@ class TaxesForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    // dsm($form);
+    $config = \Drupal::config('taxes.taxesconfig');
+    if ($config->get('taxesquery') == 1){
+      $response = new RedirectResponse('consultam');
+      $response->send();
+    }
     $popularTaxes = [
       "TODOS" => "TODOS",
       "SERVICIO DE AGUA POTABLE" => "SERVICIO DE AGUA POTABLE",
@@ -61,12 +69,11 @@ class TaxesForm extends FormBase {
       "SERVICIOS TECNICOS Y ADMINISTRATIVO" => "SERVICIOS TECNICOS Y ADMINISTRATIVO",
       "MULTAS PATENTE MUNICIPAL" => "MULTAS PATENTE MUNICIPAL"
     ];
-    $form['consulta'] = array(
-      '#title' => t('Datos del abonado'),
+    $form['consulta'] = [
+      '#title' => $this->t('Datos del abonado'),
       '#type' => 'fieldset',
-      '#description' => t('Consulta a través de su cédula y por RUBRO')
-    );
-
+      '#description' => $this->t('Consulta a través de su cédula y por RUBRO'),
+    ];
 
     $form['consulta']['cedula'] = [
       '#type' => 'textfield',
@@ -76,6 +83,7 @@ class TaxesForm extends FormBase {
       '#size' => 13,
       '#weight' => '0',
     ];
+
     $form['consulta']['rubro'] = [
       '#type' => 'select',
       '#title' => $this->t('Rubro'),
@@ -84,7 +92,8 @@ class TaxesForm extends FormBase {
       '#default_value' => $this->t('TODOS'),
       //'#size' => 5,
       '#weight' => '0',
-    ];    
+    ];
+
     $form['consulta']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Submit'),
@@ -108,11 +117,11 @@ class TaxesForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Display result.
-    unset($_SESSION['dataws']); // Unset Session with data 
+    unset($_SESSION['dataws']); // Unset Session with data
     $_SESSION['post'] = $_POST; // Catch values from captcha control
     foreach ($form_state->getValues() as $key => $value) {
       // \Drupal::messenger()->addMessage($key . ': ' . ($key === 'text_format' ? $value['value']: $value));
-      
+
       if($key === 'cedula'){
         $ced = $value;
       }
@@ -121,14 +130,16 @@ class TaxesForm extends FormBase {
       }
     }
     $response = $this->impuestosClient->withCedula($ced); // Call service method with DNI parameter
+
     $_SESSION['dataws'] = $this->filterTaxes($response, $rubro);
+
     // $_SESSION['rubro'] = $rubro;
     // $form_state->setRedirect('taxes.resconsulta'); // NO tableselect result
     $form_state->setRedirect('taxes.ts_resultado');
   }
 
-  /** 
-   * 
+  /**
+   *
    * Filter values with specific role
    * @param Array taxes
    * @return Array
@@ -140,13 +151,13 @@ class TaxesForm extends FormBase {
     }
     // if(!user_is_logged_in()){
     // if(empty($ced)|| !is_numeric($ced) || strlen($_POST['g-recaptcha-response'])==0){
-    if(empty($taxes)){      
+    if(empty($taxes)){
       $response = new RedirectResponse('/taxes/consulta');
       $response->send();
       return;
-    }   
-  
-    $result = array();    
+    }
+
+    $result = array();
     $patente_list = array(
       "PATENTE MUNICIPAL",
       "IMPUESTO A LOS ACTIVOS TOTALES",
@@ -184,9 +195,9 @@ class TaxesForm extends FormBase {
       $numItems = sizeof($taxes['bonds']);
       if ($rubro == 'TODOS'){
         $alltaxes = $this->fill_taxes($taxes['bonds']);
-        // dsm($alltaxes);        
+        // dsm($alltaxes);
       }else{
-        if ($numItems == 1){     
+        if ($numItems == 1){
           if(in_array($taxes['bonds']['account'], $rango_impuestos)){
             $alltaxes[$par] = array(
             'codSer'  => $taxes['bonds']['serviceCode'],
@@ -202,7 +213,7 @@ class TaxesForm extends FormBase {
             );
             $par+=1;
           }
-          
+
         }else{ // More than one element
           for($i=0; $i<$numItems; $i++){
             // dsm($i);
@@ -212,7 +223,7 @@ class TaxesForm extends FormBase {
             }else{
                     $srvcode = '';
             }
-            if(in_array($taxes['bonds'][$i]['account'], $rango_impuestos)){          
+            if(in_array($taxes['bonds'][$i]['account'], $rango_impuestos)){
               $alltaxes[$par] = array(
                 'codSer'  => $srvcode,
                 'rubro'   => $taxes['bonds'][$i]['account'],
@@ -227,10 +238,10 @@ class TaxesForm extends FormBase {
               );
               $par+=1;
             }
-            
+
           }// end for
         }
-      }      
+      }
     }else{
       // No available values for payments
     }
@@ -245,7 +256,7 @@ class TaxesForm extends FormBase {
   public function fill_taxes($bonds){
     $par = 1;
     $numItems = sizeof($bonds);
-    if($lenQuery == 1){
+    if($numItems == 1){
       $alltaxes[$par] = array(
         'codSer'  => $bonds['serviceCode'],
         'rubro'   => $bonds['account'],
@@ -258,10 +269,10 @@ class TaxesForm extends FormBase {
         'recargo' => 0,
         'sku'     => $par,
         );
-      $par+=1;            
+      $par+=1;
     }
     // More than one element
-    else{      
+    else{
       for($i=0; $i<$numItems; $i++){
         if(isset($bonds[$i]['serviceCode'])){
           $srvcode = substr($bonds[$i]['serviceCode'],0,15);
@@ -281,11 +292,11 @@ class TaxesForm extends FormBase {
           'sku'     => $par,
         );
         $par+=1;
-        
+
       }// end for
     }
-    
+
     return $alltaxes;
-  }  
+  }
 
 }

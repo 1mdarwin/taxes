@@ -22,11 +22,11 @@ class TableResultForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     global $base_url;
-    // dsm($_POST);
-    
-    // dsm($_SESSION['taxes']);
+    //  dsm($_POST);
+
+    // dpm($_SESSION['taxes']);
     $ced = $_POST['cedula'];
-    
+
     $header = [
       'codSer' => $this->t('Codigo de Servicio'),
       'rubro'   => $this->t('Rubro'),
@@ -34,15 +34,17 @@ class TableResultForm extends FormBase {
       'fFin'    => $this->t('Fecha de Expiración'),
       'monto'   => $this->t('Valor'),
     ];
+    print_r($_SESSION['dataws']);
 
     if(empty($_SESSION['dataws'])){
       $_SESSION['dataws'] = NULL;
     }else{
       $dataws = $_SESSION['dataws'];  // Recover data from session
-    }    
-    asort($dataws);    
+    }
+    print_r($dataws);
+    asort($dataws);
     $options = $this->reindexKey($dataws, false);
-        
+
     $form['impuestos'] = [
       '#type' => 'tableselect',
       '#title' => $this->t('Impuestos'),
@@ -116,6 +118,6 @@ class TableResultForm extends FormBase {
     }
     return $allData;
   }
-  
+
 
 }

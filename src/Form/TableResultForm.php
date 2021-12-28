@@ -5,6 +5,10 @@ namespace Drupal\taxes\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
+use Drupal\commerce_price\Price;
+use Drupal\commerce_order\Entity\OrderItem;
+use Drupal\commerce_order\Entity\Order;
+
 /**
  * Class TableForm.
  */
@@ -34,14 +38,13 @@ class TableResultForm extends FormBase {
       'fFin'    => $this->t('Fecha de Expiración'),
       'monto'   => $this->t('Valor'),
     ];
-    print_r($_SESSION['dataws']);
 
     if(empty($_SESSION['dataws'])){
       $_SESSION['dataws'] = NULL;
     }else{
       $dataws = $_SESSION['dataws'];  // Recover data from session
     }
-    print_r($dataws);
+
     asort($dataws);
     $options = $this->reindexKey($dataws, false);
 
@@ -79,6 +82,50 @@ class TableResultForm extends FormBase {
     foreach ($form_state->getValues() as $key => $value) {
       \Drupal::messenger()->addMessage($key . ': ' . ($key === 'text_format'?$value['value']:$value));
     }
+    $this->createOrderCustom();
+
+
+  }
+  /**
+   * Allow to create an order from code with custom fields using order type item
+   */
+  public function createOrderCustom(){
+    $order_item = OrderItem::create([
+      'type' => 'impuestolineorder',
+      'purchased_entity' => 1,
+      'quantity' => 1,
+      // Omit these lines to preserve original product price.
+      'unit_price' => new Price(80, 'USD'),
+      'overridden_unit_price' => TRUE,
+    ]);
+    $order_item->save();
+
+
+    // Next we create the billing profile.
+    $profile = \Drupal\profile\Entity\Profile::create([
+      'type' => 'customer',
+      'uid' => 1, // The user id that the billing profile belongs to.
+    ]);
+    $profile->save();
+
+    $order = Order::create([
+      'type' => 'default',
+      'mail' => \Drupal::currentUser()->getEmail(),
+      'uid' => \Drupal::currentUser()->id(),
+      'store_id' => 2,
+      'order_items' => [$order_item],
+      'placed' => \Drupal::time()->getCurrentTime(),
+      'payment_gateway' => 'example_payment',
+      'checkout_step' => 'payment',
+      'billing_profile' => $profile, // The profile we just created.
+      'state' => 'draft',
+    ]);
+
+    $order->recalculateTotalPrice();
+    $order->save();
+
+    $order->set('order_number', $order->id());
+    $order->save();
   }
   /**
  * Function for reorder array start with key from 1

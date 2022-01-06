@@ -26,10 +26,12 @@ class TableResultForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     global $base_url;
+    $sum = 0;
     //  dsm($_POST);
 
     // dpm($_SESSION['taxes']);
-    $ced = $_POST['cedula'];
+    $ced = $_SESSION['cedula']; // Get cedula from session var
+    $cliente = $_SESSION['contribuyente']; // Get client's name from session var
 
     $header = [
       'codSer' => $this->t('Codigo de Servicio'),
@@ -44,8 +46,23 @@ class TableResultForm extends FormBase {
     }else{
       $dataws = $_SESSION['dataws'];  // Recover data from session
     }
+    if(sizeof($dataws) > 0){
+      foreach ($dataws as $tax) {
+        $options[$tax['sku']] = array(
+          'codSer'  => $tax['codSer'],
+          'rubro'   => $tax['rubro'],
+          'fInicio' => $tax['fInicio'],
+          'fFin'    => $tax['fFin'],
+          'monto'   => $tax['monto'],
+        );
 
-    asort($dataws);
+        $sum += (float) $tax['monto'];
+        $sum = number_format((float)$sum, 2, '.', ''); // Format with 2 decimals
+      }
+      asort($dataws); // Sort by codServ and Date but the key is changed
+    }
+
+
     $options = $this->reindexKey($dataws, false);
 
     $form['impuestos'] = [
@@ -55,10 +72,29 @@ class TableResultForm extends FormBase {
       '#options' => $options,
       '#description' => $this->t('impuestos a presentar'),
       '#weight' => '0',
+      '#prefix'   => '<div class="contribuyente">
+			      <div class="nombrecon"><strong>Nombre: </strong>' .$cliente. '</div><div class="apecon"><strong>Cédula: </strong>' .$ced. '</div><div><strong>Rubro Seleccionado:</strong> '.$_SESSION['rubro'].'</div>
+			    </div>',
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Submit'),
+      '#prefix' => ' <div class="totalq">' .$sum. '</div>',
+	    '#suffix' => '<div class="nuevacon"><a class="nueva" href="'.$base_url.'/taxes/consulta">Nueva Consulta</a></div>
+			  <div class="notas">
+			    <p><strong>RECUERDE:</strong>Se pueden efectuar pagos con tarjeta de crédito en DIFERIDO desde 10 USD en adelante</p>
+			    <p><strong></strong>Pagos con tarjeta débito y tarjeta de crédito en CORRIENTE HASTA 300 USD</p>
+			    <div><strong>Tarjetas Aceptadas:</strong>
+				<ul>
+				  <li>VISA/MASTERCARD BANCO PICHINCHA</li>
+				  <li>VISA BANCO GENERAL RUMIÑAHUI</li>
+				  <li>VISA BANCO DE LOJA</li>
+				  <li>DINERS</li>
+				  <li>DISCOVER</li>
+				</ul>
+			     </div>
+			    <div class="manualpagos"><a href="https://goo.gl/vqw9x3">Descargar manual de pagos</a></div>
+			  </div>',
+	    '#value'  =>  $this->t('Pagar Impuestos'),
     ];
 
     return $form;
@@ -82,8 +118,10 @@ class TableResultForm extends FormBase {
     foreach ($form_state->getValues() as $key => $value) {
       \Drupal::messenger()->addMessage($key . ': ' . ($key === 'text_format'?$value['value']:$value));
     }
-    $this->createOrderCustom();
+    $order = $this->createOrderCustom(); // Get the order created
 
+    // $form_state->setRedirect('commerce_checkout.form', ['commerce_order' => $order->id()]); // Redirect
+    $form_state->setRedirect('commerce_cart.page', ['commerce_order' => $order->id()]); // Redirect
 
   }
   /**
@@ -91,8 +129,9 @@ class TableResultForm extends FormBase {
    */
   public function createOrderCustom(){
     $order_item = OrderItem::create([
-      'type' => 'impuestolineorder',
-      'purchased_entity' => 1,
+      // 'type' => 'default',  // Order Item Type
+      'type' => 'impuestolineorder',  // Order Item Type
+      'purchased_entity' => '4', // Must be string always
       'quantity' => 1,
       // Omit these lines to preserve original product price.
       'unit_price' => new Price(80, 'USD'),
@@ -100,6 +139,15 @@ class TableResultForm extends FormBase {
     ]);
     $order_item->save();
 
+    $entity_manager = \Drupal::entityTypeManager();
+    $cart_manager = \Drupal::service('commerce_cart.cart_manager');
+    $cart_provider = \Drupal::service('commerce_cart.cart_provider');
+    $store = $entity_manager->getStorage('commerce_store')->load(2);
+    $cart = $cart_provider->getCart('default', $store);
+    if (!$cart) {
+      $cart = $cart_provider->createCart('default', $store);
+    }
+    $cart_manager->addOrderItem($cart, $order_item);
 
     // Next we create the billing profile.
     $profile = \Drupal\profile\Entity\Profile::create([
@@ -126,6 +174,8 @@ class TableResultForm extends FormBase {
 
     $order->set('order_number', $order->id());
     $order->save();
+
+    return $order;
   }
   /**
  * Function for reorder array start with key from 1

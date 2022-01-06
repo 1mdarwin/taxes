@@ -132,6 +132,9 @@ class TaxesForm extends FormBase {
     $response = $this->impuestosClient->withCedula($ced); // Call service method with DNI parameter
 
     $_SESSION['dataws'] = $this->filterTaxes($response, $rubro);
+    $_SESSION['contribuyente'] = $response['taxpayer']['firstName'];
+    $_SESSION['cedula'] = $ced;
+    $_SESSION['rubro'] = $rubro;
 
     // $_SESSION['rubro'] = $rubro;
     // $form_state->setRedirect('taxes.resconsulta'); // NO tableselect result

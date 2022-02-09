@@ -30,7 +30,7 @@ class ImpuestosClient {
     // $cedula = '1104262835';
     // $username = 'dabetancourtc';
 
-    $response = $this->client->post('/gim/seam/resource/rest/queries/debts',[
+    $response = $this->client->post('/gim/seam/resource/rest/queries/debts', [
         'auth' => [USER_GIM, PASS_GIM],
         'json' => [
           'identification' => $cedula,

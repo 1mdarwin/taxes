@@ -1,6 +1,6 @@
 <?php
 /**
- * Global parameters for web services connection another connection with diverged
+ * Global parameters for web services connection
  */
 
 require_once ('connection_ws.inc');

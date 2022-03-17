@@ -1,6 +1,6 @@
 name: 'taxes'
 type: module
-description: 'Consume data from GIM webservice REST without diverged'
+description: 'Consume data from GIM webservice REST without diverged without'
 core: 8.x
 package: 'IML'
 core_version_requirement: ^8|^9

@@ -13,7 +13,9 @@ require_once ('connection_ws.inc');
 use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
- * Implements hook_help().
+ * Implements hook_help()
+ * @param $route_name
+ * @return $output (String)
  */
 function taxes_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
@@ -23,6 +25,9 @@ function taxes_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Consume data from GIM webservice REST') ;
       $output .=  t(' and show them into table for commerce module') . '</p>';
+      $output .= '<p>' . t('It module use order items that is similar to line order item in Drupal 7') ;
+      $output .=  t(' order item is based on product variation, you can see a youtube video
+      <a href="https://www.youtube.com/watch?v=RWBvPcRXaFU">How to use and configure Order Item Type in Drupal 9 Commerce</a>') . '</p>';
       $output .= '<ul><li>' . t('The URL build is /taxes/consulta') . '</li></ul>';
       return $output;
 

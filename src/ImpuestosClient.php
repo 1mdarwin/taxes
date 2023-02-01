@@ -23,7 +23,8 @@ class ImpuestosClient {
   }
 
   /**
-   * {}
+   * Consume endpoint webservice using authenticacion and ID customer (cedula)
+   * @param $cedula
    */
   public function withCedula($cedula = '' ){
 

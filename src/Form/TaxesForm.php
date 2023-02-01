@@ -30,7 +30,7 @@ class TaxesForm extends FormBase {
    */
   public static function create(ContainerInterface $container){
     return new static (
-      $container->get('impuestos_client') // Call service impuestos_client
+      $container->get('impuestos_client') // Call service impuestos_client from services yml file
     );
   }
 
@@ -261,13 +261,13 @@ class TaxesForm extends FormBase {
     $numItems = sizeof($bonds);
     if($numItems == 1){
       $alltaxes[$par] = array(
-        'codSer'  => $bonds['serviceCode'],
-        'rubro'   => $bonds['account'],
-        'fInicio' => substr($bonds['serviceDate'], 0, 10),
-        'fFin'    => substr($bonds['expirationDate'], 0, 10),
-        'monto'   => $bonds['total'],
-        'id'      => $bonds['id'], // Bond's Id for register payment
-        'number'      => $bonds['number'], // Bond's Id for register payment
+        'codSer'  => $bonds[0]['serviceCode'],
+        'rubro'   => $bonds[0]['account'],
+        'fInicio' => substr($bonds[0]['serviceDate'], 0, 10),
+        'fFin'    => substr($bonds[0]['expirationDate'], 0, 10),
+        'monto'   => $bonds[0]['total'],
+        'id'      => $bonds[0]['id'], // Bond's Id for register payment
+        'number'      => $bonds[0]['number'], // Bond's Id for register payment
         'interes' => 0,
         'recargo' => 0,
         'sku'     => $par,

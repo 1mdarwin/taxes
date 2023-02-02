@@ -125,29 +125,58 @@ class TableResultForm extends FormBase {
 
   }
   /**
-   * Allow to create an order from code with custom fields using order type item
+   *
+   */
+  public function createOrderItemImpuestos(){
+    $dataws = $_SESSION['dataws'];
+    $items = [];
+    foreach($dataws as $field_name => $values){
+      $order_item = OrderItem::create([
+        'type' => 'impuestos_ot',  // Order Item Type
+        'purchased_entity' => '2', // Must be string always - product id or instance
+        'quantity' => 1,
+      ]);
+      $order_item->field_fecha = $values['fInicio'];
+      $order_item->field_rubro = $values['rubro'];
+      $order_item->field_monto = $values['monto'];
+      $order_item->field_servicio = $values['codSer'];
+      $order_item->save();
+      $items[] = $order_item;
+    }
+    return $items;
+  }
+  /**
+   * Allow to create an order from code with custom fields using order item
    */
   public function createOrderCustom(){
-    $order_item = OrderItem::create([
-      // 'type' => 'default',  // Order Item Type
-      'type' => 'impuestolineorder',  // Order Item Type
-      'purchased_entity' => '4', // Must be string always
-      'quantity' => 1,
-      // Omit these lines to preserve original product price.
-      'unit_price' => new Price(80, 'USD'),
-      'overridden_unit_price' => TRUE,
-    ]);
-    $order_item->save();
+    // $order_item = OrderItem::create([
+    //   // 'type' => 'default',  // Order Item Type
+    //   'type' => 'impuestos_ot',  // Order Item Type
+    //   'purchased_entity' => '2', // Must be string always - product id or instance
+    //   'quantity' => 1,
+    //   // Omit these lines to preserve original product price.
+    //   // 'unit_price' => new Price(80, 'USD'),
+    //   // 'overridden_unit_price' => TRUE,
+    //   // Add values for special fiels - Order Item
+    //   'field_monto' => '40',
+    //   'field_rubro' => 'AGUA',
+    //   'field_servicio' => '55555'
+    // ]);
+    // $order_item->save();
 
     $entity_manager = \Drupal::entityTypeManager();
     $cart_manager = \Drupal::service('commerce_cart.cart_manager');
     $cart_provider = \Drupal::service('commerce_cart.cart_provider');
-    $store = $entity_manager->getStorage('commerce_store')->load(2);
+    $store = $entity_manager->getStorage('commerce_store')->load(1);
     $cart = $cart_provider->getCart('default', $store);
     if (!$cart) {
       $cart = $cart_provider->createCart('default', $store);
     }
-    $cart_manager->addOrderItem($cart, $order_item);
+    // $cart_manager->addOrderItem($cart, $order_item);
+    foreach($this->createOrderItemImpuestos() as $field_name => $order_item){
+      $cart_manager->addOrderItem($cart, $order_item);
+    }
+
 
     // Next we create the billing profile.
     $profile = \Drupal\profile\Entity\Profile::create([
@@ -160,8 +189,9 @@ class TableResultForm extends FormBase {
       'type' => 'default',
       'mail' => \Drupal::currentUser()->getEmail(),
       'uid' => \Drupal::currentUser()->id(),
-      'store_id' => 2,
-      'order_items' => [$order_item],
+      'store_id' => 1,
+      // 'order_items' => [$order_item],
+      'order_items' => $this->createOrderItemImpuestos(),
       'placed' => \Drupal::time()->getCurrentTime(),
       'payment_gateway' => 'example_payment',
       'checkout_step' => 'payment',

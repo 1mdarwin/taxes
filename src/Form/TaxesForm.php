@@ -46,6 +46,12 @@ class TaxesForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     // dsm($form);
+    if(isset($_SESSION['dataws'])){
+      $_SESSION['dataws'] = NULL;
+      $_SESSION['rubro'] = NULL;
+      $_SESSION['cedula'] = NULL;
+      $_SESSION['contribuyente'] = NULL;
+    }
     $config = \Drupal::config('taxes.taxesconfig');
     if ($config->get('taxesquery') == 1){
       $response = new RedirectResponse('consultam');
@@ -118,7 +124,9 @@ class TaxesForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Display result.
-    unset($_SESSION['dataws']); // Unset Session with data
+    if(isset($_SESSION['dataws'])){
+      $_SESSION['dataws'] = NULL;
+    }
     $_SESSION['post'] = $_POST; // Catch values from captcha control
     foreach ($form_state->getValues() as $key => $value) {
       // \Drupal::messenger()->addMessage($key . ': ' . ($key === 'text_format' ? $value['value']: $value));
@@ -132,13 +140,16 @@ class TaxesForm extends FormBase {
     }
     $response = $this->impuestosClient->withCedula($ced); // Call service method with DNI parameter
 
-    $_SESSION['dataws'] = $this->filterTaxes($response, $rubro);
+    $_SESSION['dataws'] = $this->filterTaxes($response, $rubro); // filter taxes by rubro
+    $dataws = $_SESSION['dataws'];
     $_SESSION['contribuyente'] = $response['taxpayer']['firstName'];
     $_SESSION['cedula'] = $ced;
     $_SESSION['rubro'] = $rubro;
 
     // $_SESSION['rubro'] = $rubro;
     // $form_state->setRedirect('taxes.resconsulta'); // NO tableselect result
+    $tempstore = \Drupal::service('tempstore.private')->get('taxes_multipleform');
+    $tempstore->set('dataws', $dataws);
     $form_state->setRedirect('taxes.ts_resultado');
   }
 
@@ -160,8 +171,6 @@ class TaxesForm extends FormBase {
       $response->send();
       return;
     }
-
-    $result = array();
     $patente_list = array(
       "PATENTE MUNICIPAL",
       "IMPUESTO A LOS ACTIVOS TOTALES",

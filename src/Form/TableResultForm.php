@@ -27,9 +27,11 @@ class TableResultForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     global $base_url;
     $sum = 0;
-    //  dsm($_POST);
+    dpm($_POST);
 
     // dpm($_SESSION['taxes']);
+    $tempstore = \Drupal::service('tempstore.private')->get('taxes_multipleform');
+    $dataws = $tempstore->get('dataws');
     $ced = $_SESSION['cedula']; // Get cedula from session var
     $cliente = $_SESSION['contribuyente']; // Get client's name from session var
 
@@ -41,11 +43,12 @@ class TableResultForm extends FormBase {
       'monto'   => $this->t('Valor'),
     ];
 
-    if(empty($_SESSION['dataws'])){
-      $_SESSION['dataws'] = NULL;
-    }else{
-      $dataws = $_SESSION['dataws'];  // Recover data from session
-    }
+    // if(empty($_SESSION['dataws'])){
+    //   $_SESSION['dataws'] = NULL;
+    // }else{
+    //   $dataws = $_SESSION['dataws'];  // Recover data from session
+    // }
+    // $dataws = $_SESSION['dataws'];  // Recover data from session
     if(sizeof($dataws) > 0){
       foreach ($dataws as $tax) {
         $options[$tax['sku']] = array(
